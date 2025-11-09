@@ -31,8 +31,8 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # MOD: Carpeta global de plantilles
-        'APP_DIRS': True,
+        'DIRS': [BASE_DIR / 'templates'],  # ✅ must include this line
+        'APP_DIRS': True,  # ✅ must be True
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -43,6 +43,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
@@ -92,8 +93,3 @@ MESSAGE_TAGS = {  # MOD: Adaptació a classes Bootstrap
     messages.WARNING: 'warning',
     messages.ERROR: 'danger',
 }
-
-# (Opcional futur producció)
-# CSRF_COOKIE_SECURE = True  # MOD
-# SESSION_COOKIE_SECURE = True  # MOD
-# SECURE_HSTS_SECONDS = 3600  # MOD

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Iniciar sessió{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <h2>Inicia sessió</h2>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      <div class="mb-3">
+        {{ form.username.label_tag }}
+        {{ form.username }}
+        {% if form.username.errors %}<div class="text-danger small">{{ form.username.errors }}</div>{% endif %}
+      </div>
+      <div class="mb-3">
+        {{ form.password.label_tag }}
+        {{ form.password }}
+        {% if form.password.errors %}<div class="text-danger small">{{ form.password.errors }}</div>{% endif %}
+      </div>
+      <input type="hidden" name="next" value="{{ next }}">
+      <button class="btn btn-primary" type="submit">Accedir</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
