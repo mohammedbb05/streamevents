@@ -9,6 +9,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', TemplateView.as_view(template_name='base.html'), name='home'),  # o la teva vista principal
     path('users/', include('users.urls', namespace='users')),
+    path('events/', include('events.urls')),
 ]
 
 if settings.DEBUG:

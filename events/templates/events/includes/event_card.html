@@ -1,0 +1,44 @@
+<div class="card h-100 shadow-sm">
+    {% if event.thumbnail %}
+        <img src="{{ event.thumbnail.url }}" class="card-img-top" alt="{{ event.title }}" style="height: 200px; object-fit: cover;">
+    {% else %}
+        <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
+            <span class="display-4">{{ event.get_category_icon }}</span>
+        </div>
+    {% endif %}
+    
+    <div class="card-body d-flex flex-column">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <span class="badge {{ event.get_status_badge_class }}">{{ event.get_status_display }}</span>
+            {% if event.is_featured %}
+                <span class="badge bg-warning text-dark">⭐ Destacat</span>
+            {% endif %}
+        </div>
+        
+        <h5 class="card-title">{{ event.title }}</h5>
+        
+        <p class="card-text text-muted small mb-2">
+            <i class="fas fa-user"></i> {{ event.creator.username }}
+        </p>
+        
+        <p class="card-text text-muted small mb-2">
+            <i class="fas fa-tag"></i> {{ event.get_category_display }}
+        </p>
+        
+        <p class="card-text text-muted small mb-3">
+            <i class="fas fa-calendar-alt"></i> {{ event.scheduled_date|date:"d/m/Y H:i" }}
+        </p>
+        
+        <div class="mt-auto">
+            <div class="mb-2">
+                {% for tag in event.get_tags_list|slice:":3" %}
+                    <span class="badge bg-light text-dark">{{ tag }}</span>
+                {% endfor %}
+            </div>
+            
+            <a href="{% url 'events:event_detail' event.pk %}" class="btn btn-primary btn-sm w-100">
+                Veure més
+            </a>
+        </div>
+    </div>
+</div>

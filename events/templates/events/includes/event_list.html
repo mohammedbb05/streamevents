@@ -1,0 +1,162 @@
+<!-- events/templates/events/includes/event_list.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Esdeveniments - StreamEvents{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <!-- Capçalera -->
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <h1 class="display-5">🎬 Esdeveniments de Streaming</h1>
+      <p class="lead">Descobreix els millors esdeveniments en directe</p>
+    </div>
+    <div class="col-md-4 text-end">
+      {% if user.is_authenticated %}
+        <a href="{% url 'events:event_create' %}" class="btn btn-success">
+          <i class="fas fa-plus"></i> Crear Esdeveniment
+        </a>
+        <a href="{% url 'events:my_events' %}" class="btn btn-outline-primary">
+          <i class="fas fa-user"></i> Els meus Esdeveniments
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Filtres (simplificats per ara) -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <p class="mb-0 text-muted">
+        <i class="fas fa-info-circle"></i> 
+        Els filtres estan temporalment desactivats per manteniment tècnic.
+      </p>
+    </div>
+  </div>
+
+  <!-- Esdeveniments destacats -->
+  {% if featured_events %}
+    <div class="mb-5">
+      <h2 class="h3 mb-3">⭐ Esdeveniments Destacats</h2>
+      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for event in featured_events %}
+          <div class="col">
+            <div class="card h-100 shadow-sm">
+              {% if event.thumbnail %}
+                <img src="{{ event.thumbnail.url }}" class="card-img-top" alt="{{ event.title }}" style="height: 200px; object-fit: cover;">
+              {% else %}
+                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
+                  <span class="display-4">{{ event.get_category_icon }}</span>
+                </div>
+              {% endif %}
+              
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <span class="badge {{ event.get_status_badge_class }}">{{ event.get_status_display }}</span>
+                  <span class="badge bg-warning text-dark">⭐ Destacat</span>
+                </div>
+                
+                <h5 class="card-title">{{ event.title|truncatechars:50 }}</h5>
+                
+                <p class="card-text text-muted small mb-2">
+                  <i class="fas fa-user"></i> {{ event.creator.username }}
+                </p>
+                
+                <p class="card-text text-muted small mb-3">
+                  <i class="fas fa-calendar-alt"></i> {{ event.scheduled_date|date:"d/m/Y H:i" }}
+                </p>
+                
+                <a href="{% url 'events:event_detail' event.pk %}" class="btn btn-primary btn-sm w-100">
+                  Veure més
+                </a>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Tots els esdeveniments -->
+  <h2 class="h3 mb-3">🎯 Tots els Esdeveniments</h2>
+  
+  {% if events %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+      {% for event in events %}
+        <div class="col">
+          <div class="card h-100 shadow-sm">
+            {% if event.thumbnail %}
+              <img src="{{ event.thumbnail.url }}" class="card-img-top" alt="{{ event.title }}" style="height: 180px; object-fit: cover;">
+            {% else %}
+              <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 180px;">
+                <span class="display-4">{{ event.get_category_icon }}</span>
+              </div>
+            {% endif %}
+            
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="badge {{ event.get_status_badge_class }}">{{ event.get_status_display }}</span>
+                {% if event.is_featured %}
+                  <span class="badge bg-warning text-dark">⭐</span>
+                {% endif %}
+              </div>
+              
+              <h5 class="card-title h6">{{ event.title|truncatechars:40 }}</h5>
+              
+              <p class="card-text text-muted small mb-2">
+                <i class="fas fa-user"></i> {{ event.creator.username }}
+              </p>
+              
+              <p class="card-text text-muted small mb-3">
+                <i class="fas fa-calendar-alt"></i> {{ event.scheduled_date|date:"d/m/Y H:i" }}
+              </p>
+              
+              <a href="{% url 'events:event_detail' event.pk %}" class="btn btn-primary btn-sm w-100">
+                Veure més
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Paginació simple -->
+    {% if total_pages > 1 %}
+      <nav aria-label="Paginació" class="mt-5">
+        <ul class="pagination justify-content-center">
+          {% if current_page > 1 %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ current_page|add:'-1' }}">Anterior</a>
+            </li>
+          {% endif %}
+          
+          <li class="page-item active">
+            <span class="page-link">Pàgina {{ current_page }} de {{ total_pages }}</span>
+          </li>
+          
+          {% if current_page < total_pages %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ current_page|add:'1' }}">Següent</a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% endif %}
+  {% else %}
+    <div class="text-center py-5">
+      <div class="display-1 text-muted mb-3">🎬</div>
+      <h3 class="h4">No hi ha esdeveniments disponibles</h3>
+      <p class="text-muted">Sigues el primer a crear un esdeveniment!</p>
+      {% if user.is_authenticated %}
+        <a href="{% url 'events:event_create' %}" class="btn btn-primary">
+          <i class="fas fa-plus"></i> Crear el meu primer esdeveniment
+        </a>
+      {% else %}
+        <a href="{% url 'users:register' %}" class="btn btn-primary">
+          <i class="fas fa-user-plus"></i> Registra't per crear esdeveniments
+        </a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

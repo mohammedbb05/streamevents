@@ -1,28 +1,96 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top shadow-sm">
+<!-- templates/includes/navbar.html -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow-sm">
   <div class="container">
-    <a class="navbar-brand" href="{% url 'home' %}">MyProject</a>
+    <a class="navbar-brand" href="{% url 'home' %}">
+      <i class="fas fa-stream"></i> StreamEvents
+    </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div class="collapse navbar-collapse" id="navMenu">
-      <ul class="navbar-nav ms-auto">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'events:event_list' %}">
+            <i class="fas fa-calendar-alt"></i> Esdeveniments
+          </a>
+        </li>
+        
+        <!-- Categories dropdown - versió simplificada -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" 
+             data-bs-toggle="dropdown">
+            <i class="fas fa-tags"></i> Categories
+          </a>
+          <ul class="dropdown-menu">
+            <!-- Enllaços directes sense variables del context -->
+            <li><a class="dropdown-item" href="{% url 'events:events_by_category' 'gaming' %}">Gaming</a></li>
+            <li><a class="dropdown-item" href="{% url 'events:events_by_category' 'music' %}">Música</a></li>
+            <li><a class="dropdown-item" href="{% url 'events:events_by_category' 'talk' %}">Xerrades</a></li>
+            <li><a class="dropdown-item" href="{% url 'events:events_by_category' 'education' %}">Educació</a></li>
+            <li><a class="dropdown-item" href="{% url 'events:events_by_category' 'sports' %}">Esports</a></li>
+            <li><a class="dropdown-item" href="{% url 'events:events_by_category' 'entertainment' %}">Entreteniment</a></li>
+            <li><a class="dropdown-item" href="{% url 'events:events_by_category' 'technology' %}">Tecnologia</a></li>
+            <li><a class="dropdown-item" href="{% url 'events:events_by_category' 'art' %}">Art i Creativitat</a></li>
+            <li><a class="dropdown-item" href="{% url 'events:events_by_category' 'other' %}">Altres</a></li>
+          </ul>
+        </li>
+        
         {% if user.is_authenticated %}
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'users:profile' %}">Perfil</a>
+            <a class="nav-link" href="{% url 'events:event_create' %}">
+              <i class="fas fa-plus-circle"></i> Crear Esdeveniment
+            </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'users:edit_profile' %}">Editar</a>
+            <a class="nav-link" href="{% url 'events:my_events' %}">
+              <i class="fas fa-user"></i> Els meus Esdeveniments
+            </a>
           </li>
-          <li class="nav-item">
-            <form method="post" action="{% url 'users:logout' %}">
-              {% csrf_token %}
-              <button class="btn btn-link nav-link" type="submit">Sortir</button>
-            </form>
+        {% endif %}
+      </ul>
+      
+      <ul class="navbar-nav">
+        {% if user.is_authenticated %}
+          <!-- Usuari autenticat -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" 
+               data-bs-toggle="dropdown">
+              <i class="fas fa-user-circle"></i> {{ user.username }}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="{% url 'users:profile' %}">
+                <i class="fas fa-user"></i> Perfil
+              </a></li>
+              <li><a class="dropdown-item" href="{% url 'users:edit_profile' %}">
+                <i class="fas fa-edit"></i> Editar Perfil
+              </a></li>
+              <li><a class="dropdown-item" href="{% url 'events:my_events' %}">
+                <i class="fas fa-calendar"></i> Els meus Esdeveniments
+              </a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <form method="post" action="{% url 'users:logout' %}" class="dropdown-item p-0">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-link text-decoration-none p-0 ps-3">
+                    <i class="fas fa-sign-out-alt"></i> Tancar Sessió
+                  </button>
+                </form>
+              </li>
+            </ul>
           </li>
         {% else %}
-          <li class="nav-item"><a class="nav-link" href="{% url 'users:login' %}">Inicia sessió</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'users:register' %}">Registre</a></li>
+          <!-- Usuari no autenticat -->
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'users:register' %}">
+              <i class="fas fa-user-plus"></i> Registra't
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'users:login' %}">
+              <i class="fas fa-sign-in-alt"></i> Inicia Sessió
+            </a>
+          </li>
         {% endif %}
       </ul>
     </div>

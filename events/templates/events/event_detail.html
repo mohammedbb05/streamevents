@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ event.title }} - StreamEvents{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <!-- Capçalera -->
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'events:event_list' %}">Esdeveniments</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'events:events_by_category' event.category %}">{{ event.get_category_display }}</a></li>
+          <li class="breadcrumb-item active" aria-current="page">{{ event.title }}</li>
+        </ol>
+      </nav>
+      
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="badge {{ event.get_status_badge_class }} fs-6">{{ event.get_status_display }}</span>
+        {% if event.is_featured %}
+          <span class="badge bg-warning text-dark fs-6">⭐ Destacat</span>
+        {% endif %}
+        <span class="badge bg-info text-dark fs-6">{{ event.get_category_display }}</span>
+      </div>
+      
+      <h1 class="display-5">{{ event.title }}</h1>
+      
+      <div class="d-flex align-items-center gap-3 text-muted mb-4">
+        <div>
+          <i class="fas fa-user"></i>
+          <a href="#" class="text-decoration-none">{{ event.creator.username }}</a>
+        </div>
+        <div>
+          <i class="fas fa-calendar-alt"></i>
+          {{ event.scheduled_date|date:"d/m/Y H:i" }}
+        </div>
+        <div>
+          <i class="fas fa-clock"></i>
+          {{ event.get_duration_display }}
+        </div>
+        <div>
+          <i class="fas fa-users"></i>
+          {{ event.max_viewers }} espectadors màxims
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-4 text-end">
+      {% if is_creator %}
+        <div class="btn-group">
+          <a href="{% url 'events:event_update' event.pk %}" class="btn btn-outline-primary">
+            <i class="fas fa-edit"></i> Editar
+          </a>
+          <a href="{% url 'events:event_delete' event.pk %}" class="btn btn-outline-danger">
+            <i class="fas fa-trash"></i> Eliminar
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Contingut principal -->
+    <div class="col-lg-8">
+      <!-- Player de streaming -->
+      {% if embed_url %}
+        <div class="card mb-4">
+          <div class="card-body p-0">
+            <div class="ratio ratio-16x9">
+              <iframe 
+                src="{{ embed_url }}" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen
+              ></iframe>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+      
+      <!-- Thumbnail -->
+      {% if event.thumbnail %}
+        <div class="card mb-4">
+          <img src="{{ event.thumbnail.url }}" class="card-img-top" alt="{{ event.title }}">
+        </div>
+      {% endif %}
+      
+      <!-- Descripció -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h3 class="h5 card-title">📝 Descripció</h3>
+          <div class="card-text">
+            {{ event.description|linebreaks }}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      <!-- Etiquetes -->
+      {% if tags_list %}
+        <div class="card mb-4">
+          <div class="card-body">
+            <h3 class="h5 card-title">🏷️ Etiquetes</h3>
+            <div class="d-flex flex-wrap gap-2">
+              {% for tag in tags_list %}
+                <span class="badge bg-light text-dark border">{{ tag }}</span>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+      
+      <!-- Informació del creador -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h3 class="h5 card-title">👤 Creador</h3>
+          <div class="d-flex align-items-center gap-3">
+            <div class="flex-shrink-0">
+              {% if event.creator.profile.avatar %}
+                <img src="{{ event.creator.profile.avatar.url }}" alt="{{ event.creator.username }}" 
+                     class="rounded-circle" width="50" height="50">
+              {% else %}
+                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" 
+                     style="width: 50px; height: 50px;">
+                  <span class="text-white">{{ event.creator.username|first|upper }}</span>
+                </div>
+              {% endif %}
+            </div>
+            <div class="flex-grow-1">
+              <h4 class="h6 mb-0">{{ event.creator.username }}</h4>
+              <p class="text-muted small mb-0">
+                {{ event.creator.events.count }} esdeveniment{{ event.creator.events.count|pluralize }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Informació de l'esdeveniment -->
+      <div class="card">
+        <div class="card-body">
+          <h3 class="h5 card-title">📊 Informació</h3>
+          <ul class="list-unstyled">
+            <li class="mb-2">
+              <strong>Estat:</strong>
+              <span class="badge {{ event.get_status_badge_class }} ms-2">
+                {{ event.get_status_display }}
+              </span>
+            </li>
+            <li class="mb-2">
+              <strong>Categoria:</strong> {{ event.get_category_display }}
+            </li>
+            <li class="mb-2">
+              <strong>Data programada:</strong> {{ event.scheduled_date|date:"d/m/Y H:i" }}
+            </li>
+            <li class="mb-2">
+              <strong>Durada:</strong> {{ event.get_duration_display }}
+            </li>
+            <li class="mb-2">
+              <strong>Espectadors màxims:</strong> {{ event.max_viewers }}
+            </li>
+            <li class="mb-2">
+              <strong>Creat:</strong> {{ event.created_at|date:"d/m/Y H:i" }}
+            </li>
+            <li>
+              <strong>Actualitzat:</strong> {{ event.updated_at|date:"d/m/Y H:i" }}
+            </li>
+          </ul>
+          
+          {% if event.stream_url %}
+            <a href="{{ event.stream_url }}" target="_blank" class="btn btn-outline-primary w-100 mt-3">
+              <i class="fas fa-external-link-alt"></i> Anar al streaming original
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
