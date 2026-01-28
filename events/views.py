@@ -7,7 +7,10 @@ from django.utils import timezone
 from .models import Event
 from .forms import EventCreationForm, EventUpdateForm, EventSearchForm
 from django.http import HttpResponseForbidden
+<<<<<<< HEAD
 from chat.forms import ChatMessageForm
+=======
+>>>>>>> 478ab73ea527aa8a27fb9e10170ae876c46580e9
 
 def event_list_view(request):
     """Vista per llistar esdeveniments amb gestió d'errors"""
@@ -249,6 +252,7 @@ def events_by_category_view(request, category):
         'icon': Event().get_category_icon(),  # Instància buida per obtenir el mètode
     }
     
+<<<<<<< HEAD
     return render(request, 'events/events_by_category.html', context)
 
 def event_detail(request, pk):
@@ -260,3 +264,6 @@ def event_detail(request, pk):
         'chat_form': chat_form,
     }
     return render(request, 'events/event_detail.html', context)
+=======
+    return render(request, 'events/events_by_category.html', context)
+>>>>>>> 478ab73ea527aa8a27fb9e10170ae876c46580e9

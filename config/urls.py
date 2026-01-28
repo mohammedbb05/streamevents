@@ -10,7 +10,10 @@ urlpatterns = [
     path('', TemplateView.as_view(template_name='base.html'), name='home'),  # o la teva vista principal
     path('users/', include('users.urls', namespace='users')),
     path('events/', include('events.urls')),
+<<<<<<< HEAD
     path('chat/', include('chat.urls')),
+=======
+>>>>>>> 478ab73ea527aa8a27fb9e10170ae876c46580e9
 ]
 
 if settings.DEBUG:
