@@ -1,34 +1,39 @@
+from django.db import models
 from django.contrib.auth.models import AbstractUser
-from djongo import models
+from django.utils.translation import gettext_lazy as _
+from django.core.validators import RegexValidator
 
-
+# Extendim AbstractUser per afegir camps extra requerits pel projecte:
+# - display_name: nom públic opcional
+# - bio: text breu
+# - avatar: imatge d'usuari
 class CustomUser(AbstractUser):
-    # Camps extra
-    display_name = models.CharField(max_length=150, blank=True)
-    bio = models.TextField(blank=True)
-    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
-    # Necessita Pillow instal·lat
-
-    def __str__(self):
-        return self.username
-
-
-class Follow(models.Model):
-    # follower (A) segueix following (B)
-    follower = models.ForeignKey(
-        'CustomUser',
-        related_name='following_set',
-        on_delete=models.CASCADE
+    # Validem username amb la mateixa regex que Django per coherència
+    username_validator = RegexValidator(
+        regex=r'^[\w.@+-]+$',
+        message=_("El nom d'usuari només pot contenir lletres, números i @/./+/-/_")
     )
-    following = models.ForeignKey(
-        'CustomUser',
-        related_name='followers_set',
-        on_delete=models.CASCADE
+
+    display_name = models.CharField(
+        _("Display name"),
+        max_length=150,
+        blank=True,
+        help_text=_("Nom públic que es mostrarà al perfil")
     )
-    created_at = models.DateTimeField(auto_now_add=True)
+    bio = models.TextField(
+        _("Bio"),
+        blank=True,
+        help_text=_("Una breu descripció sobre l'usuari"),
+    )
+    avatar = models.ImageField(
+        _("Avatar"),
+        upload_to='avatars/%Y/%m/%d/',
+        null=True,
+        blank=True,
+        help_text=_("Imatge de perfil")
+    )
+    email = models.EmailField(unique=True)
 
-    class Meta:
-        unique_together = ('follower', 'following')  # Evita duplicats A->B
-
+    # Opcional: redefinir el __str__ per mostrar identificador clar
     def __str__(self):
-        return f'{self.follower} -> {self.following}'
+        return self.display_name or self.get_username()

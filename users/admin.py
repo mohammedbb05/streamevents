@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, Follow
+from .models import CustomUser
+
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
@@ -9,9 +10,3 @@ class CustomUserAdmin(UserAdmin):
     )
     list_display = ('username', 'email', 'display_name', 'is_staff', 'is_active')
     search_fields = ('username', 'email', 'display_name')
-
-@admin.register(Follow)
-class FollowAdmin(admin.ModelAdmin):
-    list_display = ('follower', 'following', 'created_at')
-    search_fields = ('follower__username', 'following__username')
-    list_filter = ('created_at',)

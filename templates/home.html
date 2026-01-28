@@ -1,0 +1,45 @@
+<!-- templates/home.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Inici - StreamEvents{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <!-- Hero Section -->
+  <div class="row align-items-center py-5">
+    <div class="col-lg-6">
+      <h1 class="display-4 fw-bold mb-4">🎬 Benvingut a StreamEvents</h1>
+      <p class="lead mb-4">
+        La plataforma on pots descobrir, crear i gestionar esdeveniments de streaming en directe.
+        Uneix-te a la comunitat i comparteix les teves passions.
+      </p>
+      <div class="d-flex gap-3">
+        {% if user.is_authenticated %}
+          <a href="{% url 'events:event_create' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-plus"></i> Crear Esdeveniment
+          </a>
+          <a href="{% url 'events:event_list' %}" class="btn btn-outline-primary btn-lg">
+            <i class="fas fa-search"></i> Explorar Esdeveniments
+          </a>
+        {% else %}
+          <a href="{% url 'users:register' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-user-plus"></i> Uneix-te ara
+          </a>
+          <a href="{% url 'users:login' %}" class="btn btn-outline-primary btn-lg">
+            <i class="fas fa-sign-in-alt"></i> Inicia Sessió
+          </a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <!-- Imatge local en lloc d'URL externa -->
+      <div class="bg-primary rounded shadow p-5 text-center text-white">
+        <i class="fas fa-stream display-1"></i>
+        <h3 class="mt-3">StreamEvents</h3>
+        <p class="mb-0">La teva plataforma d'esdeveniments en directe</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

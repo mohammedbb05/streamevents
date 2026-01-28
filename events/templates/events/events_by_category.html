@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ category_name }} - StreamEvents{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <!-- Capçalera de categoria -->
+  <div class="text-center mb-5">
+    <div class="display-1 mb-3">{{ icon }}</div>
+    <h1 class="display-5">{{ category_name }}</h1>
+    <p class="lead">
+      {{ events.count }} esdeveniment{{ events.count|pluralize }} en aquesta categoria
+    </p>
+    <a href="{% url 'events:event_list' %}" class="btn btn-outline-primary">
+      <i class="fas fa-arrow-left"></i> Tornar a tots els esdeveniments
+    </a>
+  </div>
+  
+  <!-- Esdeveniments -->
+  {% if events %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+      {% for event in events %}
+        <div class="col">
+          <div class="card h-100 shadow-sm">
+            {% if event.thumbnail %}
+              <img src="{{ event.thumbnail.url }}" class="card-img-top" alt="{{ event.title }}" style="height: 200px; object-fit: cover;">
+            {% else %}
+              <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
+                <span class="display-4">{{ event.get_category_icon }}</span>
+              </div>
+            {% endif %}
+            
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="badge {{ event.get_status_badge_class }}">{{ event.get_status_display }}</span>
+                {% if event.is_featured %}
+                  <span class="badge bg-warning text-dark">⭐</span>
+                {% endif %}
+              </div>
+              
+              <h5 class="card-title">{{ event.title|truncatechars:50 }}</h5>
+              
+              <p class="card-text text-muted small mb-2">
+                <i class="fas fa-user"></i> {{ event.creator.username }}
+              </p>
+              
+              <p class="card-text text-muted small mb-3">
+                <i class="fas fa-calendar-alt"></i> {{ event.scheduled_date|date:"d/m/Y H:i" }}
+              </p>
+              
+              <div class="mt-auto">
+                <div class="mb-2">
+                  {% for tag in event.get_tags_list|slice:":3" %}
+                    <span class="badge bg-light text-dark">{{ tag }}</span>
+                  {% endfor %}
+                </div>
+                
+                <a href="{% url 'events:event_detail' event.pk %}" class="btn btn-primary btn-sm w-100">
+                  Veure més
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-center py-5">
+      <div class="display-1 text-muted mb-3">{{ icon }}</div>
+      <h3 class="h4">No hi ha esdeveniments en aquesta categoria</h3>
+      <p class="text-muted">Sigues el primer a crear un esdeveniment!</p>
+      {% if user.is_authenticated %}
+        <a href="{% url 'events:event_create' %}" class="btn btn-primary mt-3">
+          <i class="fas fa-plus"></i> Crear esdeveniment
+        </a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Registre{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Crear un compte</h2>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    {% for field in form %}
+      <div class="mb-3">
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.errors %}
+          <div class="text-danger small">{{ field.errors }}</div>
+        {% endif %}
+      </div>
+    {% endfor %}
+
+    <button type="submit" class="btn btn-primary">Registrar-me</button>
+  </form>
+</div>
+{% endblock %}

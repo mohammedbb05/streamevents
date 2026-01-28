@@ -1,0 +1,355 @@
+{% load static %}
+
+<div class="card">
+    <!-- HEADER -->
+    <div class="card-header bg-primary text-white">
+        <h3 class="h5 mb-0">💬 Xat en Directe</h3>
+    </div>
+
+    <!-- BODY -->
+    <div class="card-body p-0" style="height: 250px;">
+        <div id="chat-messages" class="p-3 h-100 overflow-auto">
+            <div class="text-center text-muted py-5">
+                <p>💬 Carregant missatges...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="card-footer">
+        {% if user.is_authenticated and event.status == 'live' %}
+        <form id="chat-form">
+            {% csrf_token %}
+            <div class="mb-2">
+                <input type="text"
+                       id="chat-input"
+                       class="form-control form-control-sm"
+                       placeholder="Missatge..."
+                       autocomplete="off"
+                       maxlength="500">
+                <small id="chat-error" class="text-danger"></small>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm w-100">
+                <i class="bi bi-send me-1"></i> Enviar
+            </button>
+        </form>
+
+        <div class="mt-2 small text-muted">
+            <i class="bi bi-person me-1"></i>
+            <strong>{{ user.username }}</strong>
+            {% if user.is_staff %}
+            <span class="badge bg-danger ms-2">Staff</span>
+            {% endif %}
+        </div>
+
+        {% else %}
+        <div class="alert alert-warning alert-sm mb-0 p-2">
+            {% if not user.is_authenticated %}
+            <small><a href="{% url 'users:login' %}?next={{ request.path }}" class="alert-link">Inicia sessió</a> per xatejar</small>
+            {% else %}
+            <small>Xat disponible només durant directes</small>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+/* eslint-disable */
+const CHAT = {
+    eventId: {{ event.id }},
+    csrfToken: '{{ csrf_token }}',
+    currentUsername: '{{ user.username|escapejs }}',
+    isAuthenticated: {% if user.is_authenticated %}true{% else %}false{% endif %},
+    isEventLive: {% if event.status == 'live' %}true{% else %}false{% endif %}
+};
+/* eslint-enable */
+
+console.log('⚡ Chat configurado:', CHAT);
+
+// ================= MAIN FUNCTIONS =================
+
+// 1. Load messages
+async function loadMessages() {
+    try {
+        console.log('🔄 Cargando mensajes de:', `/chat/${CHAT.eventId}/messages/`);
+        
+        const response = await fetch(`/chat/${CHAT.eventId}/messages/`);
+        
+        console.log('📡 Response status:', response.status);
+        console.log('📡 Response headers:', response.headers.get('content-type'));
+        
+        if (!response.ok) {
+            console.error('❌ Response not OK:', response.status, response.statusText);
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const text = await response.text();
+        console.log('📦 Response text:', text.substring(0, 200));
+        
+        const data = JSON.parse(text);
+        console.log('📦 Parsed data:', data);
+
+        if (data.success) {
+            renderMessages(data.messages);
+            document.getElementById('chat-message-count').textContent = data.count;
+            document.getElementById('chat-status').textContent = `${data.count} missatges`;
+        } else {
+            showError('Error: ' + (data.error || 'Desconegut'));
+        }
+    } catch (error) {
+        console.error('❌ Error completo:', error);
+        console.error('❌ Error type:', error.name);
+        console.error('❌ Error message:', error.message);
+        showError('Error de connexió');
+    }
+}
+
+// 2. Render messages
+function renderMessages(messages) {
+    const container = document.getElementById('chat-messages');
+    if (!container) return;
+
+    if (!messages || messages.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted py-5">
+                <p>💬 No hi ha missatges encara. Sigues el primer!</p>
+            </div>
+        `;
+        return;
+    }
+
+    let html = '';
+    messages.forEach(msg => {
+        const isOwn = msg.username === CHAT.currentUsername;
+        const isDeleted = msg.is_deleted;
+        const canDelete = msg.can_delete;
+
+        let messageClass = 'message mb-3 p-3 rounded';
+        let bgClass = '';
+
+        if (isDeleted) {
+            bgClass = 'bg-light opacity-50';
+        } else if (isOwn) {
+            bgClass = 'bg-primary text-white';
+        } else {
+            bgClass = 'bg-light';
+        }
+
+        html += `
+            <div class="${messageClass} ${bgClass}">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <strong>${escapeHtml(msg.display_name)}</strong>
+                        ${isOwn ? ' <small>(Tu)</small>' : ''}
+                        ${isDeleted ? ' <small class="text-danger">[Eliminat]</small>' : ''}
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <small class="me-2">${escapeHtml(msg.created_at)}</small>
+                        ${canDelete && !isDeleted ? `
+                            <button class="btn btn-sm ${isOwn ? 'btn-light' : 'btn-outline-danger'}"
+                                    onclick="deleteMessage(${msg.id}, this)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="mt-2">${escapeHtml(msg.message)}</div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+    container.scrollTop = container.scrollHeight;
+}
+
+// 3. Send message
+async function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const message = input.value.trim();
+
+    if (!message) {
+        showError('Escriu alguna cosa primer');
+        return;
+    }
+
+    if (message.length > 500) {
+        showError('Màxim 500 caràcters');
+        return;
+    }
+
+    console.log('📤 Enviant:', message);
+
+    const formData = new FormData();
+    formData.append('message', message);
+    formData.append('csrfmiddlewaretoken', CHAT.csrfToken);
+
+    try {
+        const response = await fetch(`/chat/${CHAT.eventId}/send/`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+        console.log('📦 Resultat:', data);
+
+        if (data.success) {
+            input.value = '';
+            input.focus();
+            showError('');
+            setTimeout(loadMessages, 300);
+        } else {
+            showError(data.error || 'Error al enviar');
+        }
+    } catch (error) {
+        console.error('❌ Error:', error);
+        showError('Error de connexió');
+    }
+}
+
+// 4. Delete message
+async function deleteMessage(messageId, button) {
+    if (!confirm('Estàs segur que vols eliminar aquest missatge?')) return;
+
+    if (button) {
+        button.disabled = true;
+        button.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', CHAT.csrfToken);
+
+        const response = await fetch(`/chat/message/${messageId}/delete/`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            loadMessages();
+        } else {
+            alert('❌ Error: ' + (data.error || 'No es pot eliminar'));
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = '<i class="bi bi-trash"></i>';
+            }
+        }
+    } catch (error) {
+        alert('❌ Error de connexió');
+        if (button) {
+            button.disabled = false;
+            button.innerHTML = '<i class="bi bi-trash"></i>';
+        }
+    }
+}
+
+// 5. Show error
+function showError(text) {
+    const el = document.getElementById('chat-error');
+    if (el) {
+        el.textContent = text;
+        setTimeout(() => el.textContent = '', 3000);
+    }
+}
+
+// 6. Escape HTML
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return String(text).replace(/[&<>"']/g, m => map[m]);
+}
+
+// ================= INITIALIZATION =================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Chat inicializando...');
+
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('chat-input');
+
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            sendMessage();
+        });
+    }
+
+    if (input) {
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        input.focus();
+    }
+
+    // Load initial messages
+    loadMessages();
+
+    console.log('✅ Chat listo');
+});
+</script>
+
+<!-- STYLES -->
+<style>
+.card {
+    border: 1px solid #dee2e6;
+    border-radius: 0;
+}
+
+.message {
+    transition: all 0.2s;
+    border-left: 4px solid transparent;
+    font-size: 0.85rem;
+}
+
+.message:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.message.bg-primary {
+    border-left-color: #0056b3;
+}
+
+.message.bg-light {
+    border-left-color: #dee2e6;
+}
+
+.message .btn-light {
+    color: #0d6efd !important;
+    background: white !important;
+}
+
+.message .btn-light:hover {
+    background: #f8f9fa !important;
+}
+
+#chat-messages {
+    background: #f8f9fa;
+}
+
+#chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+#chat-messages::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+#chat-messages::-webkit-scrollbar-thumb {
+    background: #007bff;
+}
+
+#chat-input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+</style>
