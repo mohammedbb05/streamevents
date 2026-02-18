@@ -16,10 +16,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users',  # MOD: App d'usuari personalitzada
     'events',
-<<<<<<< HEAD
-    'chat'
-=======
->>>>>>> 478ab73ea527aa8a27fb9e10170ae876c46580e9
+    'chat',
+    'semantic_search',
 ]
 
 MIDDLEWARE = [

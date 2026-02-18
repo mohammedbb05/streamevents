@@ -3,6 +3,7 @@ from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
+from django.db.models import JSONField
 import re
 
 class Event(models.Model):
@@ -24,6 +25,9 @@ class Event(models.Model):
         ('finished', 'Finalitzat'),
         ('cancelled', 'Cancel·lat'),
     ]
+    embedding = models.JSONField(blank=True, null=True)
+    embedding_model = models.CharField(max_length=200, blank=True, null=True)
+    embedding_updated_at = models.DateTimeField(blank=True, null=True)
 
     title = models.CharField(max_length=200, verbose_name="Títol")
     description = models.TextField(verbose_name="Descripció")
